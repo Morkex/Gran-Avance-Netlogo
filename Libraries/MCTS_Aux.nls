@@ -1,0 +1,164 @@
+to-report fichaDelanteBlanca? [pos lista]
+  let res false
+  if item (pos - 8) lista != 0 [set res true]
+  report res
+end
+
+to-report fichaDiagonalDerechaBlanca? [pos lista]
+  let res false
+  let w item (pos - 7) lista
+  if  w < 17 and w != 0 [set res true]
+  report res
+end
+
+to-report fichaDiagonalIzquierdaBlanca? [pos lista]
+  let res false
+  let w item (pos - 9) lista
+  if  w < 17 and w != 0 [set res true]
+  report res
+end
+
+to-report fichaDelanteNegra? [pos lista]
+  let res false
+  if item (pos + 8) lista != 0 [set res true]
+  report res
+end
+
+to-report fichaDiagonalDerechaNegra? [pos lista]
+  let res false
+  let w item (pos + 9) lista
+  if  w > 48  and w != 0 [set res true]
+  report res
+end
+
+to-report fichaDiagonalIzquierdaNegra? [pos lista]
+  let res false
+  let w item (pos + 7) lista
+  if  w > 48 and w != 0 [set res true]
+  report res
+end
+
+
+to-report comprobarNegras [ x]
+let res false
+
+  foreach (range 49 65) [
+    i -> if i = x [set res true]
+  ]
+
+report res
+end
+
+to-report comprobarBlancas [ x]
+let res false
+
+  foreach (range 1 17) [
+    i -> if i = x [set res true]
+  ]
+
+report res
+end
+
+
+to-report posicion-lista [ l t ]
+  let res (list)
+  let x 0
+
+  if t = 1 [ ;blancas
+    foreach l [
+      (if ((item x l) < 17 and (item x l) != 0)[set res lput x res]) set x (x + 1)
+    ]
+  ]
+
+  if t = 2 [ ;negras
+    foreach l [
+      (if ((item x l) = 2)[set res lput x res]) set x (x + 1)
+    ]
+  ]
+
+  report res
+end
+
+
+to-report movimientoValido?[ x1 y1 x2 y2]
+  let res false
+  let hayFichaDelante false
+  let temp x1 - x2
+
+  if (turno = "blancas")[ ;para las blancas
+
+    if (any? negras-on patch (x1) (y1 + 1)) [set hayFichaDelante True]
+    if (temp = 0 or temp = 1 or temp = -1 and y2 - y1 = 1 and not hayFichaDelante)[set res true ]
+    if (temp = 1 or temp = -1 and y2 - y1 = 1 and hayFichaDelante)[set res true ]
+
+  ]
+
+  if turno = "negras"[ ;para las negras
+
+    if (any? blancas-on patch (x1) (y1 - 1)) [set hayFichaDelante True]
+    if (temp = 0 or temp = 1 or temp = -1 and y2 - y1 = -1 and not hayFichaDelante)[set res true ]
+    if (temp = 1 or temp = -1 and y2 - y1 = -1 and hayFichaDelante)[set res true ]
+
+  ]
+  report res
+end
+
+to gana?
+
+  ask blancas with[ycor = 7][
+    sound:play-note "TRUMPET" 60 64 1
+  user-message "Gana blancas!!!"
+      stop
+  ]
+
+  ask negras with[ycor = 0][
+    sound:play-note "TRUMPET" 60 64 1
+  user-message "Gana negras!!!"
+      stop
+  ]
+
+  if not any? negras
+  [sound:play-note "TRUMPET" 60 64 1
+    user-message "Gana blancas!!!"
+      stop ]
+    if not any? blancas
+  [ sound:play-note "TRUMPET" 60 64 1
+    user-message "Gana negras!!!"
+      stop ]
+
+end
+
+to actualizarTablero
+  ask patches with [any? blancas-on patch pxcor pycor] [
+    ;set value  [id] of blancas-on patch pxcor pycor
+    let w [id] of blancas-on patch pxcor pycor
+    set value first w
+    set plabel value
+  ]
+    ask patches with [any? negras-on patch pxcor pycor] [
+   let w [id] of negras-on patch pxcor pycor
+    set value first w
+    set plabel value
+  ]
+    ask patches with [not any? negras-on patch pxcor pycor and not any? blancas-on patch pxcor pycor] [
+    set value 0
+    set plabel value
+  ]
+
+end
+
+; Auxiliary report to build the representation in list from the patches
+to-report board-to-state
+  let b map [x -> [value] of x] (sort patches)
+  report b
+end
+
+
+
+to-report containsRange [ N pri seg]
+  let res false
+  foreach (range pri seg)[
+    x -> if x = N [set res true]
+  ]
+  report res
+end
